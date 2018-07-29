@@ -20,15 +20,7 @@ const express = require('express');
 const puppeteer = require('puppeteer');
 const app = express();
 const firebase = require("firebase");
-// Set environment variables
-var config = {
-  apiKey: "AIzaSyCq-rnzCk4hc8LCYwOVSjSez7pTmWBessc",
-  authDomain: "fireapp-2a935.firebaseapp.com",
-  databaseURL: "https://fireapp-2a935.firebaseio.com",
-  projectId: "fireapp-2a935",
-  storageBucket: "fireapp-2a935.appspot.com",
-  messagingSenderId: "961073507239"
-};
+const config = require('./config');
 // Initialize Firebase database
 firebase.initializeApp(config);
 
@@ -49,7 +41,7 @@ app.use(async (req, res) => {
   let hotel_city_penn = "/?url=https://www.wyndhamhotels.com/hotels/philadelphia-pennsylvania"
 
   if (!url) {
-    return res.send(`Please provide URL as GET parameter, for example: <a href=${hotel_city_sanDiego}>San Diego Hotels</a> 
+    return res.send(`<h1>Hotel Scrapper</h1><br><br><br>Please provide URL as GET parameter, for example: <a href=${hotel_city_sanDiego}>San Diego Hotels</a> 
                     <br/><br/> Please provide URL as GET parameter, for example: <a href=${hotel_city_nevada}>Nevada Hotels</a>
                     <br/><br/> Please provide URL as GET parameter, for example: <a href=${hotel_city_sanFran}>San Francisco Hotels</a>
                     <br/><br/> Please provide URL as GET parameter, for example: <a href=${hotel_city_la_cali}>Los Angeles Hotels</a>
@@ -68,7 +60,7 @@ app.use(async (req, res) => {
   // [START browser]
   const browser = await puppeteer.launch({
     args: ['--no-sandbox'],
-    headless: true
+    headless: false
   });
   // [END browser]
   const page = await browser.newPage();
@@ -112,16 +104,16 @@ app.use(async (req, res) => {
       image
     }
 
-    var content = JSON.stringify(object_values);
-    contents.push(content);
+    contents.push(object_values);
     database.ref('/wyndhamHotel').push(object_values);
     console.log("Processed!", i);
   }
   
   res.send(contents);
-  return contents;
-
+  // This helps prevent service costs on the cloud platform.
   await browser.close();
+
+  return contents;
 
 });
 
