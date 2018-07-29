@@ -12,7 +12,7 @@ Refer to the [appengine/README.md](../README.md) file for instructions on runnin
 
 This application is mainly developed to help search for Hotels and book the best room with lowest price on the listing. There is a lot more depending on application,you can send to the database. 
 
-```JavaSrcipt 
+```javascript 
     
     ...
         var database = firebase.database();
