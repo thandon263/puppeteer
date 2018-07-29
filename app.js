@@ -19,41 +19,26 @@ limitations under the License.
 const express = require('express');
 const puppeteer = require('puppeteer');
 const app = express();
-const firebase = require("firebase");
+const firebase = require('firebase');
 const config = require('./config');
+const hotel = require('./hotels');
 // Initialize Firebase database
 firebase.initializeApp(config);
 
 app.use(async (req, res) => {
   const url = req.query.url;
 
-  let hotel_city_sanDiego = "/?url=https://www.wyndhamhotels.com/hotels/san-diego-california"
-  let hotel_city_nevada = "/?url=https://www.wyndhamhotels.com/hotels/las-vegas-nevada"
-  let hotel_city_sanFran = "/?url=https://www.wyndhamhotels.com/hotels/san-francisco-california"
-  let hotel_city_la_cali = "/?url=https://www.wyndhamhotels.com/hotels/los-angeles-california"
-  let hotel_city_denver = "/?url=https://www.wyndhamhotels.com/hotels/denver-colorado"
-  let hotel_city_texas = "/?url=https://www.wyndhamhotels.com/hotels/houston-texas"
-  let hotel_city_illinois = "/?url=https://www.wyndhamhotels.com/hotels/chicago-illinois"
-  let hotel_city_dallas = "/?url=https://www.wyndhamhotels.com/hotels/dallas-texas"
-  let hotel_city_minnesota = "/?url=https://www.wyndhamhotels.com/hotels/inneapolis-minnesota"
-  let hotel_city_georgia = "/?url=https://www.wyndhamhotels.com/hotels/atlanta-georgia"
-  let hotel_city_washington = "/?url=https://www.wyndhamhotels.com/hotels/washington-district-of-columbia"
-  let hotel_city_penn = "/?url=https://www.wyndhamhotels.com/hotels/philadelphia-pennsylvania"
-
   if (!url) {
-    return res.send(`<h1>Hotel Scrapper</h1><br><br><br>Please provide URL as GET parameter, for example: <a href=${hotel_city_sanDiego}>San Diego Hotels</a> 
-                    <br/><br/> Please provide URL as GET parameter, for example: <a href=${hotel_city_nevada}>Nevada Hotels</a>
-                    <br/><br/> Please provide URL as GET parameter, for example: <a href=${hotel_city_sanFran}>San Francisco Hotels</a>
-                    <br/><br/> Please provide URL as GET parameter, for example: <a href=${hotel_city_la_cali}>Los Angeles Hotels</a>
-                    <br/><br/> Please provide URL as GET parameter, for example: <a href=${hotel_city_denver}>Denver Hotels</a>
-                    <br/><br/> Please provide URL as GET parameter, for example: <a href=${hotel_city_texas}>Texas Hotels</a>
-                    <br/><br/> Please provide URL as GET parameter, for example: <a href=${hotel_city_illinois}>illinois Hotels</a>
-                    <br/><br/> Please provide URL as GET parameter, for example: <a href=${hotel_city_dallas}>Dallas Hotels</a>
-                    <br/><br/> Please provide URL as GET parameter, for example: <a href=${hotel_city_minnesota}>Minnesota Hotels</a>
-                    <br/><br/> Please provide URL as GET parameter, for example: <a href=${hotel_city_georgia}>Georgia Hotels</a>
-                    <br/><br/> Please provide URL as GET parameter, for example: <a href=${hotel_city_washington}>Washington Hotels</a>
-                    <br/><br/> Please provide URL as GET parameter, for example: <a href=${hotel_city_penn}>Pennsylvania Hotels</a>`);
+    return res.send(
+      `<h3>Welcome the Zerojet server --API---</h3><br><h4>Server Deployed on Google App Engine</h4><br>
+      For example, you want result for "san francisco california"
+      <br><br><code>You can send a GET request to the API using...</code><br>
+      <a href=http://localhost:8080/?url=https://www.wyndhamhotels.com/hotels/san-francisco-california>
+      /?url=https://www.wyndhamhotels.com/hotels/san-francisco-california</a>
+      <br><br> This will be your query on the request Header.`
+    )
   }
+
 
   var database = firebase.database();
 
@@ -68,12 +53,13 @@ app.use(async (req, res) => {
     width: 1000,
     height: 900
   });
-  
+
+  // [ URL ]
   await page.goto(url);
   await page.waitForSelector(".propSummary");
-  
+  // [Browser Section] This contains list of hotels in a city
   const sections = await page.$$(".hotel-details-wrapper");
-
+  // [LOCAL VARIABLE] Array of objects (List containing {name, details, price and image})
   var contents = [];
 
   for(let i = 0; i < sections.length; i++) {
@@ -88,7 +74,8 @@ app.use(async (req, res) => {
 
     const hotelName = await page.evaluate( title => title.innerText, hotel);
     const hotelDetails = await page.evaluate( hotelDetails => hotelDetails.innerText, hotel__details);
-    
+    // This TRY/CATCH block is used to catch null/undefined values
+    // When searching for a hotel room using Wyndham hotel group.
     try {
         price  = await page.evaluate( price => price.innerText, roomPrice);    
     } catch (e) {
@@ -96,7 +83,7 @@ app.use(async (req, res) => {
     }
     
     const image = await page.evaluate( image => image.src, hotel__image);
-
+    // Data retrieved from searching the web
     var object_values = {
       hotelName,
       hotelDetails,
